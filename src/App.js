@@ -1,27 +1,78 @@
+/* eslint-disable no-undef */
 import React, { useState } from 'react';
 import './App.css';
 
 
-// eslint-disable-next-line no-undef
-let acl = new Accelerometer({frequency: 60});
-acl.addEventListener('reading', () => {
-  console.log("Acceleration along the X-axis " + acl.x);
-  console.log("Acceleration along the Y-axis " + acl.y);
-  console.log("Acceleration along the Z-axis " + acl.z);
-});
+const root = document.getElementById('main');
 
-acl.start();
+function log(text) {
+  const prev = root.innerHTML;
+  root.innerHTML = `<p> ${JSON.stringify(text)} </p>`  + prev;
+}
 
-alert(JSON.stringify(acl.activated))
+let accelerometer = null;
+function reloadOnShake(params) {
+  log('accelerometer ' + params.x + ' | ' + params.y + ' | ' + params.z);
+}
+
+try {
+    accelerometer = new Accelerometer({ referenceFrame: 'device', frequency: 1 });
+    accelerometer.addEventListener('error', event => {
+        // Handle runtime errors.
+        if (event.error.name === 'NotAllowedError') {
+            // Branch to code for requesting permission.
+        } else if (event.error.name === 'NotReadableError' ) {
+            log('Cannot connect to the sensor.');
+        }
+    });
+    accelerometer.addEventListener('reading', () => reloadOnShake(accelerometer));
+    accelerometer.start();
+} catch (error) {
+    // Handle construction errors.
+    if (error.name === 'SecurityError') {
+        // See the note above about feature policy.
+        log('Sensor construction was blocked by a feature policy.');
+    } else if (error.name === 'ReferenceError') {
+        log('Sensor is not supported by the User Agent.');
+    } else {
+        throw error;
+    }
+}
+
+let gyroscope = null;
+function reloadOnMove(params) {
+  log('gyroscope ' + params.x + ' | ' + params.y + ' | ' + params.z);
+}
+
+try {
+    gyroscope = new Gyroscope({ frequency: 1 });
+    gyroscope.addEventListener('error', event => {
+        // Handle runtime errors.
+        if (event.error.name === 'NotAllowedError') {
+            // Branch to code for requesting permission.
+        } else if (event.error.name === 'NotReadableError' ) {
+            log('Cannot connect to the sensor.');
+        }
+    });
+    gyroscope.addEventListener('reading', () => reloadOnMove(gyroscope));
+    gyroscope.start();
+} catch (error) {
+    // Handle construction errors.
+    if (error.name === 'SecurityError') {
+        // See the note above about feature policy.
+        log('Sensor construction was blocked by a feature policy.');
+    } else if (error.name === 'ReferenceError') {
+        log('Sensor is not supported by the User Agent.');
+    } else {
+        throw error;
+    }
+}
 
 
 
 function App() {
   const [text, setText] = useState('no');
   const [gyro, setGyro] = useState('no 2');
-
-
-  alert(acl.x)
 
 
   // navigator.permissions.query({ name: 'gyroscope' }).then(function (result) {
@@ -110,16 +161,16 @@ function App() {
 
 
   return (
-    <div className='App'>
-      <header className='App-header'>
+    <>
+      {/* <header className='App-header'>
         <p>
           {text}
         </p>
         <p>
           {gyro}
         </p>
-      </header>
-    </div>
+      </header> */}
+    </>
   );
 }
 
